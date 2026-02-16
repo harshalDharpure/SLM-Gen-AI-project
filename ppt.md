@@ -1,87 +1,129 @@
-# FinMMEval Lab 2026 — Presentation Slides (SLM Only)
-## 4–5 Slides | Live Demo Included
+# FinMMEval Lab 2026 — Technical Presentation Slides (SLM Only)
+## 4–5 Slides | Technical Deep Dive on SLMs
 
 ---
 
-## SLIDE 1: Title & Problem Statement
+## SLIDE 1: What Are Small Language Models (SLMs)?
 
-**Title:** Multilingual Financial Reasoning with Small Language Models: FinMMEval Lab 2026
+**Title:** What Are Small Language Models (SLMs)?
 
-**Subtitle:** CLEF 2026 FinMMEval Lab | SLM-Based Approach
+**Definition:**
+- Language models with **< 10B parameters** (typically 0.5B–4B)
+- Same transformer architecture as LLMs, but scaled down
+- Trained on curated, high-quality data rather than raw web-scale corpora
 
-**Key Points:**
-- **Problem:** Multilingual financial Q&A and decision-making at scale
-- **Focus:** Small Language Models (SLMs) for efficiency and accessibility
-- **Competition:** CLEF 2026 FinMMEval Lab — Task 1 (Exam Q&A), Task 2 (RAG), Task 3 (Trading)
-- **Why SLM:** Lower compute, faster inference, deployable on edge devices
+**Why SLMs Matter:**
+- **Efficiency:** 10–50× fewer parameters than Llama-70B; lower memory, faster inference
+- **Accessibility:** Runnable on consumer GPUs (8–16GB) or CPU
+- **Edge deployment:** Feasible on laptops, mobile, embedded devices
+- **Cost:** Lower inference cost; suitable for high-throughput applications
 
----
-
-## SLIDE 2: SLM Models & Architecture
-
-**Title:** SLM Models & Unified Pipeline
-
-**Models (SLM only):**
-
-| Model | Params | Use Case |
-|-------|--------|----------|
-| Phi-2 | 2.7B | Primary baseline |
-| Phi-3-mini | 3.8B | Instruction-tuned |
-| SmolLM-360M / 1.7B | 360M–1.7B | Efficiency baseline |
-| Qwen2-0.5B / 1.5B | 0.5B–1.5B | Compact models |
-| TinyLlama-1.1B | 1.1B | Open baseline |
-
-**Pipeline:** Data (Arabic/Spanish/Hindi) → Loader → SLM + LoRA → Task 1/2/3 → Metrics
-
-**Key feature:** LoRA fine-tuning for parameter-efficient adaptation
+**Types of SLMs (by scale):**
+| Scale | Parameters | Examples |
+|-------|------------|----------|
+| Micro | 100M–500M | SmolLM-360M |
+| Small | 0.5B–1.5B | Qwen2-0.5B, TinyLlama-1.1B, SmolLM-1.7B |
+| Medium | 2B–4B | Phi-2 (2.7B), Phi-3-mini (3.8B), Qwen2-1.5B |
 
 ---
 
-## SLIDE 3: Task Coverage & Datasets
+## SLIDE 2: SLM Architectures & Parameters
 
-**Title:** Tasks & Datasets (SLM Experiments)
+**Title:** SLM Architectures & Key Parameters
 
-**Task 1 — Multilingual Exam Q&A**
-- SahmBenchmark/arabic-accounting-mcq (Arabic)
-- TheFinAI/flare-es-multifin (Spanish)
-- bharatgenai/BhashaBench-Finance (Hindi)
+**Architecture (Transformer-based):**
+- **Decoder-only:** GPT-style; autoregressive next-token prediction
+- **Layers:** 24–32 (vs 80+ in LLMs); **Hidden dim:** 2048–3072; **Heads:** 32
+- **Context length:** 2K–128K tokens depending on model
+- **Vocabulary:** ~32K–150K BPE tokens
 
-**Task 2 — RAG Q&A:** PolyFiQA-Easy, PolyFiQA-Expert | HyDE or Dense retrieval
+**Model-Specific Architectures:**
 
-**Task 3 — Trading:** TheFinAI/CLEF_Task3_Trading | Signal-to-action + backtesting
+| Model | Architecture | Layers | Hidden | Heads | Params |
+|-------|--------------|--------|--------|-------|--------|
+| Phi-2 | Transformer (RMSNorm, RoPE) | 32 | 2560 | 32 | 2.7B |
+| Phi-3-mini | Same as Phi-2, longer ctx | 32 | 3072 | 32 | 3.8B |
+| SmolLM-360M | Llama-like | 24 | 1024 | 16 | 360M |
+| SmolLM-1.7B | Llama-like | 24 | 2048 | 32 | 1.7B |
+| Qwen2-0.5B | Qwen architecture | 24 | 896 | 14 | 0.5B |
+| TinyLlama-1.1B | Llama-2 scaled | 22 | 2048 | 32 | 1.1B |
 
-**Metrics:** Accuracy, EM, F1 (T1) | ROUGE-L, BLEU (T2) | Sharpe Ratio (T3)
-
----
-
-## SLIDE 4: Implementation & Repo
-
-**Title:** Implementation & Repository
-
-**Repo:** https://github.com/harshalDharpure/Fimmeval-2026
-
-**Structure:**
-- `src/models/slm_wrapper.py` — Phi-2, Phi-3, SmolLM, Qwen2, TinyLlama
-- `src/loaders/` — Task 1 & Task 3 data loaders
-- `src/training/` — LoRA fine-tuning
-- `scripts/run_all_slm_experiments.sh` — Run all SLM experiments
-- `conf/task1_slm.yaml` — SLM configs
-
-**Features:** Multi-GPU (Accelerate), Wandb, Hydra, reproducible seeds
+**Key Parameters for Fine-Tuning:**
+- **LoRA rank (r):** 8–32 — controls adapter capacity
+- **LoRA alpha:** 16–32 — scaling factor for adapter outputs
+- **Target modules:** q_proj, v_proj, k_proj, o_proj (attention layers)
+- **Trainable params:** ~0.1–1% of total (e.g., 2.7M for Phi-2 with r=8)
 
 ---
 
-## SLIDE 5: Results & Live Demo
+## SLIDE 3: SLM Taxonomy & How We Use Them
 
-**Title:** Results & Live Demo
+**Title:** SLM Taxonomy & Our Usage in FinMMEval
 
-**Results (SLM):**
-- Task 1: Phi-2, Phi-3-mini, SmolLM, Qwen2, TinyLlama — *[update from RESULTS.md]*
-- Metrics: Accuracy, EM, F1, eval_accuracy_qa
+**Types of SLMs (by training objective):**
 
-**Live Demo:**
-1. Open terminal: `cd finevallab`
-2. Run: `python3 scripts/demo_slm_live.py`
-3. Show: model load → financial Q&A → generated answer on screen
+| Type | Description | Examples in Our Setup |
+|------|-------------|------------------------|
+| Base | Pre-trained only (next-token prediction) | — |
+| Instruct | Instruction-tuned (chat format) | Phi-3-mini, SmolLM-Instruct, Qwen2-Instruct |
+| Domain-specific | Fine-tuned on domain data | Ours: LoRA on financial Q&A |
 
-**Next Steps:** Scale to all datasets, RAG (Task 2), Trading (Task 3)
+**How We Use Them (FinMMEval Lab):**
+1. **Task 1 (Exam Q&A):** Zero-shot, few-shot, or LoRA fine-tuned on Arabic/Spanish/Hindi financial MCQs
+2. **Task 2 (RAG):** SLM as reader; retrieval (HyDE/Dense) provides context; SLM generates answer
+3. **Task 3 (Trading):** SLM (or time-series head) maps signals → buy/sell/hold; backtest for Sharpe
+
+**Parameter-Efficient Fine-Tuning (PEFT):**
+- **LoRA:** Train only low-rank adapters; freeze base model
+- **Benefits:** Fast training, small checkpoints, no catastrophic forgetting of pre-training
+- **We train:** ~0.5–2% of parameters per task
+
+---
+
+## SLIDE 4: Leveraging SLMs for Financial Tasks
+
+**Title:** How We Leverage SLMs for Financial Reasoning
+
+**Leverage Strategies:**
+
+| Strategy | Description | When to Use |
+|----------|-------------|-------------|
+| Zero-shot | Prompt-only; no training | Quick baseline; inference-only |
+| Few-shot | 1–8 in-context examples | No training; moderate gains |
+| LoRA fine-tuning | Train adapters on task data | Best accuracy; requires training |
+| RAG augmentation | SLM + retrieved documents | Task 2; complex, long-context Q&A |
+| Multi-task | Single LoRA for multiple tasks | Cross-task transfer (future) |
+
+**Architectural Leverage:**
+- **Smaller models → faster iteration:** Run ablations in hours, not days
+- **Lower memory → multi-model experiments:** Run Phi-2, SmolLM, Qwen2 in parallel on 1–2 GPUs
+- **Efficient inference → real-time apps:** Deploy on edge for live financial Q&A
+
+**Data Leverage:**
+- **Multilingual:** Same SLM for Arabic, Spanish, Hindi with shared LoRA or language-specific adapters
+- **Domain adaptation:** LoRA learns financial terminology and reasoning patterns
+- **Scaling laws:** SLMs benefit from high-quality, smaller datasets (e.g., curated MCQs)
+
+---
+
+## SLIDE 5: SLM Comparison & Live Demo
+
+**Title:** SLM Comparison & Live Demo
+
+**Our SLM Suite (7 models):**
+
+| Model | Params | Architecture | Context | Best For |
+|-------|--------|--------------|---------|----------|
+| Phi-2 | 2.7B | Decoder-only, RoPE | 2K | Primary baseline |
+| Phi-3-mini | 3.8B | Same, instruct | 4K | Instruction-following |
+| SmolLM-360M | 360M | Llama-like | 2K | Minimal compute |
+| SmolLM-1.7B | 1.7B | Llama-like | 2K | Efficiency–accuracy tradeoff |
+| Qwen2-0.5B | 0.5B | Qwen | 32K | Fastest, longest context |
+| Qwen2-1.5B | 1.5B | Qwen | 32K | Balanced |
+| TinyLlama-1.1B | 1.1B | Llama-2 | 2K | Open baseline |
+
+**Key Takeaways:**
+- SLMs cover **0.5B–3.8B** parameters; we use all for ablation
+- **Architectures:** Decoder-only transformers (Llama, Phi, Qwen families)
+- **Leverage:** LoRA + RAG + multilingual data for financial reasoning
+- **Live Demo:** Phi-2 financial Q&A on screen
